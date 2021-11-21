@@ -1,0 +1,2 @@
+curl -X GET https://h3zmtepg15.execute-api.us-west-2.amazonaws.com/prod/getAllGames
+curl -X POST "https://h3zmtepg15.execute-api.us-west-2.amazonaws.com/prod/EnrollNewGame?gameName=Chess&playersNeeded=2"
