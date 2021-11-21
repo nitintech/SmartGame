@@ -40,10 +40,10 @@ async function getAllGames() {
     console.log("getAllGames");
     var params = {
         TableName: gameIdentifiersTable,
-        ProjectionExpression: "gameId"
+        ProjectionExpression: "gameId, totalPlayers, gameUuid"
     }
 
-    var allGames = "";
+    var allGames = [];
     var result;
     await docClient.scan(params, function(err, data) {
         if (err) {
@@ -56,12 +56,17 @@ async function getAllGames() {
             console.log("Scan succeeded. Collecting data now");
             data.Items.forEach(function(itemdata) {
                 console.log("itemdata:" + JSON.stringify(itemdata));
-                allGames = allGames + " " + itemdata.gameId;           
+                allGames.push({
+                    "gameName":itemdata.gameId,
+                    "gameUniqueId": itemdata.gameUniqueId,
+                    "totalPlayers": itemdata.totalPlayers
+
+                });
                 console.log("allGames:" + allGames);
             });
             result = {
                 statusCode:200,
-                body: allGames
+                body: JSON.stringify(allGames)
             }
         }
     }).promise();
