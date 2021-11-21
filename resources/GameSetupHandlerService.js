@@ -40,7 +40,7 @@ async function getAllGames() {
     console.log("getAllGames");
     var params = {
         TableName: gameIdentifiersTable,
-        ProjectionExpression: "gameId, totalPlayers, gameUuid"
+        ProjectionExpression: "gameId, totalPlayers, gameUniqueId"
     }
 
     var allGames = [];
