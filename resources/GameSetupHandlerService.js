@@ -3,6 +3,7 @@ const { read } = require('fs');
 
 var docClient = new AWS.DynamoDB.DocumentClient();
 const gameIdentifiersTable = process.env.gamesIdentifiers;
+const gameDataTable = process.env.gamesData;
 
 exports.main = async function(event, context) {
     try {
@@ -76,34 +77,127 @@ async function getAllGames() {
 async function handlePostRequest(path, event) {
     var queryStringParams = event.queryStringParameters;
     if (path == "/EnrollNewGame"){
-        // Get the query parameters
-        var gameName = queryStringParams.gameName;
-        var totalPlayers = queryStringParams.playersNeeded;
-        var gameUuid = Math.floor(Math.random() * 10000);
-        
-        var writeStatus = await saveToGameIdentifiers(gameUuid, gameName, totalPlayers);
-        if (writeStatus != -1) {
-            console.log("handlePostRequest: Success, game uuid:" + gameUuid);
-            var bodyJson = {
-                result: 'Success',
-                gameId: gameUuid
-            };
-
-            return {
-                statusCode: 200,
-                body: JSON.stringify(bodyJson)
-            }
-        } else {
-            console.error("handlePostRequest: error");
-            return {
-                statusCode: 500,
-                body: 'Error enrolling new game'
-            }
-        }
-    } 
+        return await enrollNewGame(queryStringParams);
+    } else if(path == "/StartNewSession") {
+        return await startNewGameSession(queryStringParams);
+    }
     return {
         statusCode: 501,
         body: 'Not supported'
+    }
+}
+
+async function startNewGameSession(queryStringParams) {
+    // generate a random number for gameSession
+    // this will be shared to players intereseted
+    var gameSessionIdNum = Math.floor(Math.random() * 1000000);
+    var gameSessionId = gameSessionIdNum.toString();
+    console.log("generated game sessionId:" + gameSessionId);
+    var gameId = queryStringParams.gameName;
+    var totalPlayersNeeded = await getTotalPlayersNeeded(gameId);
+    console.log("Total players:" + totalPlayersNeeded + " for gameId:" + gameId);
+
+    if (totalPlayersNeeded == -1) {
+        // error. Game doesn't exist
+        return {
+            statusCode: 500,
+            body: 'Game Does not exist'
+        }
+    }
+
+    // Else create a new item in the gameData table
+    var players = []
+    var item = {
+        "gameSessionId": gameSessionId,
+        "gameId": gameId,
+        "totalPlayers": totalPlayersNeeded,
+        "players": players,
+        "status": "pending",
+        "currentTurn": 0
+    }
+
+    var result = await saveToGameData(item);
+    if (result == -1) {
+        return {
+            statusCode: 500,
+            body: "Error creating new session in DDB"
+        }
+    }
+
+    return {
+        statusCode: 200,
+        body: JSON.stringify(item)
+    }
+}
+
+async function saveToGameData(item) {
+    var params = {
+        TableName: gameDataTable,
+        Item: item
+    }
+
+    var result = -1;
+    await docClient.put(params, function(err, data) {
+        if (err) {
+            console.error("Error adding item", err);
+            result = -1;            
+        } else {
+            console.log("success saving item");
+            result = item.gameSessionId;
+        }
+    }).promise();
+
+    return result;
+}
+
+async function getTotalPlayersNeeded(gameIdentifier) {
+    var params = {
+        TableName: gameIdentifiersTable,
+        KeyConditionExpression: 'gameId = :gameId',
+        ExpressionAttributeValues: {
+            ':gameId': gameIdentifier
+        }
+    }
+
+    var result;
+    await docClient.query(params, function(err, data) {
+        if (err) {
+            console.error("Error querying item", err);
+            result = -1;            
+        } else {
+            console.log("success queying item", data);
+            data.Items.forEach(function(itemdata) {
+                result = itemdata.totalPlayers;
+            });
+        }
+    }).promise();
+    return result;
+}
+
+async function enrollNewGame(queryStringParams) {
+
+    // Get the query parameters
+    var gameName = queryStringParams.gameName;
+    var totalPlayers = queryStringParams.playersNeeded;
+    var gameUuid = Math.floor(Math.random() * 10000);
+        
+    var writeStatus = await saveToGameIdentifiers(gameUuid, gameName, totalPlayers);
+    if (writeStatus != -1) {
+        console.log("handlePostRequest: Success, game uuid:" + gameUuid);
+        var bodyJson = {
+            result: 'Success',
+            gameId: gameUuid
+        };
+        return {
+            statusCode: 200,
+            body: JSON.stringify(bodyJson)
+        }
+    } else {
+        console.error("handlePostRequest: error");
+        return {
+            statusCode: 500,
+            body: 'Error enrolling new game'
+        }
     }
 }
 
