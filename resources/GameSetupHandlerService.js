@@ -23,11 +23,49 @@ exports.main = async function(event, context) {
 }
 
 
-function handleGetRequest(path, event) {
+async function handleGetRequest(path, event) {
+    if (path == "/getAllGames") {
+        console.log("handleGetRequest: getAllGames");
+        var result = await getAllGames();
+        console.log("handleGetRequest result:" + result);
+        return result;
+    }
     return {
         statusCode: 200,
         body: 'Success'
     }
+}
+
+async function getAllGames() {
+    console.log("getAllGames");
+    var params = {
+        TableName: gameIdentifiersTable,
+        ProjectionExpression: "gameId"
+    }
+
+    var allGames = "";
+    var result;
+    await docClient.scan(params, function(err, data) {
+        if (err) {
+            console.error("Error scanning identifiers:", err);
+            result = {
+                statusCode: 500,
+                body: "Error scanning the game identifiers table"
+            }
+        } else {
+            console.log("Scan succeeded. Collecting data now");
+            data.Items.forEach(function(itemdata) {
+                console.log("itemdata:" + JSON.stringify(itemdata));
+                allGames = allGames + " " + itemdata.gameId;           
+                console.log("allGames:" + allGames);
+            });
+            result = {
+                statusCode:200,
+                body: allGames
+            }
+        }
+    }).promise();
+    return result;
 }
 
 async function handlePostRequest(path, event) {
@@ -65,12 +103,13 @@ async function handlePostRequest(path, event) {
 }
 
 async function saveToGameIdentifiers(gameIdentifier, gameName, totalPlayers) {
-    console.log("saving data to game identifiers table");
+    console.log("saving data to game identifiers table identifier:" +
+     gameIdentifier + "gameName:" + gameName + " totalPlayers:" + totalPlayers);
     var params = {
         TableName: gameIdentifiersTable,
         Item: {
-            "gameId": gameIdentifier.toString(),
-            "gameName": gameName,
+            "gameId": gameName,
+            "gameUniqueId": gameIdentifier.toString(),
             "totalPlayers": totalPlayers
         }
     }
@@ -91,7 +130,9 @@ async function saveToGameIdentifiers(gameIdentifier, gameName, totalPlayers) {
 async function handleEvent(path, method, event) {
     if (method == "GET") {
         console.log("got a GET request");
-        return handleGetRequest(path, event);
+        var getResult = await handleGetRequest(path, event);
+        console.log("handleEvent, getResult:" + JSON.stringify(getResult));
+        return getResult;
     } else if (method == "POST") {
         console.log("got a POST request");
         var postResult = await handlePostRequest(path, event);
