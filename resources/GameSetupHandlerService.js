@@ -74,12 +74,74 @@ async function getAllGames() {
     return result;
 }
 
+async function addNewPlayer(queryStringParams) {
+    var gameSessionId = queryStringParams.gameSessionId;
+    var userName = queryStringParams.playerName;
+
+    // query the current state, to see if more players can still be added
+    var gameDataItem = await queryGameData(gameSessionId);
+
+    if (gameDataItem != null) {
+        console.log("gameDataItem:" + JSON.stringify(gameDataItem) + " players:" + gameDataItem.players + " length:" + gameDataItem.players.length);
+    }
+
+    if (gameDataItem == null || 
+        gameDataItem.status == "active" ||
+        gameDataItem.players.length >= parseInt(gameDataItem.totalPlayers)) {
+        console.log("Game already active. Cannot add players now");
+        return {
+            statusCode: 500,
+            body: 'Game already active. Cannot add players now'
+        }
+    }
+
+    gameDataItem.players.push(userName);
+    var result = await saveToGameData(gameDataItem);
+    if (result == -1) {
+        return {
+            statusCode: 500,
+            body: "error saving player to the gameData table"
+        }
+    }
+
+    return {
+        statusCode: 200,
+        body: JSON.stringify(gameDataItem)
+    }
+}
+
+async function queryGameData(gameSessionId) {
+    var params = {
+        TableName: gameDataTable,
+        KeyConditionExpression: 'gameSessionId = :gameSessionId',
+        ExpressionAttributeValues: {
+            ':gameSessionId': gameSessionId
+        }
+    }
+
+    var result;
+    await docClient.query(params, function(err, data) {
+        if (err) {
+            console.error("Error querying item", err);
+            result = -1;            
+        } else {
+            console.log("success queying item", data);
+            data.Items.forEach(function(itemdata) {
+                result = itemdata;
+            });
+        }
+    }).promise();
+    return result;
+}
+
 async function handlePostRequest(path, event) {
     var queryStringParams = event.queryStringParameters;
     if (path == "/EnrollNewGame"){
         return await enrollNewGame(queryStringParams);
     } else if(path == "/StartNewSession") {
         return await startNewGameSession(queryStringParams);
+    } else if(path == "/AddNewPlayer") {
+        return await addNewPlayer(queryStringParams);
     }
     return {
         statusCode: 501,
