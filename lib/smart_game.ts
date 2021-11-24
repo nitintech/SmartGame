@@ -47,7 +47,7 @@ export class SmartGame extends core.Construct {
     /prod/getAllGames Response: [{"gameName":"Nim", "gameId:1"}]
     /prod/EnrollNewGame?gameName=Nim,playersNeeded=2 Response: {"gameName":"Nim", "gameId":"1"}
     /prod/StartNewSession?gameId:1 Response: {"gameId":"1", "gameSessionId": "1234", "gameName": "Nim"}
-    /prod/AddNewPlayer?gameSessionId:1234,playerName:nitin
+    /prod/AddNewPlayer?gameSessionId:1234,playerName=nitin
 
      // Add more details as you go forward. This should be a good starting point
 
