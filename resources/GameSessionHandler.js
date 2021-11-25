@@ -1,8 +1,55 @@
+const Nim = require("./Nim");
+
+const nim = new Nim(3,8);
+
 class GameSessionHandler {
     constructor(gameDataTable, docClient, gameCreationHandler) {
         this.gameDataTable = gameDataTable;
         this.docClient = docClient;
         this.gameCreationHandler = gameCreationHandler;
+    }
+
+    async playTurn(playerName, gameSessionId, turnValue) {
+        // first get the gameSession
+        gameSessionDataItem = this.queryGameData(gameSessionId);
+
+        // validate that is in active state
+        if (gameSessionDataItem.status != "active") {
+            // game cannot be played
+            return {
+                statusCode: 500,
+                body: "Game is not in active status"
+            }
+        }
+
+        // validate that this player is part of the game
+        var playerFound = false;
+        for (let i = 0; i < gameSessionDataItem.players.length; i++) {
+            if (gameSessionDataItem.players[i] == playerName) {
+                playerFound = true;
+                break;
+            }
+        }
+
+        if (!playerFound) {
+            return {
+                statusCode: 500,
+                body: "Player is not a part of the game. Sorry!"
+            }
+        }
+
+        // find the resolver based on the gameId
+        if (gameSessionDataItem.gameId != "Nim") {
+            return {
+                statusCode: 501,
+                body: "Game not supported yet. Sorry!"
+            }
+        }
+
+        var nextState = nim.changeState(col, gameSessionDataItem.gameState)
+
+
+
     }
 
     async startNewGameSession(queryStringParams) {
@@ -25,13 +72,15 @@ class GameSessionHandler {
 
         // Else create a new item in the gameData table
         var players = []
+        var gameState = {}
         var item = {
             "gameSessionId": gameSessionId,
             "gameId": gameId,
             "totalPlayers": totalPlayersNeeded,
             "players": players,
             "status": "pending",
-            "currentTurn": 0
+            "currentTurn": 0,
+            "gameState": gameState
         }
 
         var result = await this.saveToGameData(item);
@@ -70,6 +119,10 @@ class GameSessionHandler {
         }
 
         gameDataItem.players.push(userName);
+        if(gameDataItem.players.length == gameDataItem.totalPlayers) {
+            // Game is ready to be played as we have the required set of players to play
+            gameDataItem.status = "active";
+        }
         var result = await this.saveToGameData(gameDataItem);
         if (result == -1) {
             return {

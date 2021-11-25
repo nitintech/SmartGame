@@ -2,3 +2,10 @@ curl -X GET https://h3zmtepg15.execute-api.us-west-2.amazonaws.com/prod/getAllGa
 curl -X POST "https://h3zmtepg15.execute-api.us-west-2.amazonaws.com/prod/EnrollNewGame?gameName=Chess&playersNeeded=2"
 curl -X POST "https://h3zmtepg15.execute-api.us-west-2.amazonaws.com/prod/StartNewSession?gameName=Nim"
 curl -X POST "https://h3zmtepg15.execute-api.us-west-2.amazonaws.com/prod/AddNewPlayer?gameSessionId=476748&playerName=nitin"
+
+
+curl -X GET "https://h3zmtepg15.execute-api.us-west-2.amazonaws.com/prod/GetGameState?gameSessionId=476748&playerName=nitin"
+curl -X POST "https://h3zmtepg15.execute-api.us-west-2.amazonaws.com/prod/playTurn" -d '{"a" : "b", "c": [{"x":1, "y":2}, {"x":2, "y":3}]}'
+
+
+-D -> USED TO Add body to the request
