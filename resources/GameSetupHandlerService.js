@@ -43,12 +43,15 @@ async function handleGetRequest(path, event) {
 
 async function handlePostRequest(path, event) {
     var queryStringParams = event.queryStringParameters;
+    var bodyParams = event.body;
     if (path == "/EnrollNewGame"){
         return await gameCreationHandler.enrollNewGame(queryStringParams);
     } else if(path == "/StartNewSession") {
         return await gameSessionHandler.startNewGameSession(queryStringParams);
     } else if(path == "/AddNewPlayer") {
         return await gameSessionHandler.addNewPlayer(queryStringParams);
+    } else if (path == "/playTurn") {
+        return await gameSessionHandler.playTurn(bodyParams, queryStringParams);
     }
     return {
         statusCode: 501,

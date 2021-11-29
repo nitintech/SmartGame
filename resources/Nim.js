@@ -14,26 +14,27 @@ class Nim {
 
         return {
             "coordinates": nimCoordinates,
-            "nextTurn": Math.floor(Math.random() * 3),
+            "nextTurn": Math.floor(Math.random() * totalPlayers),
             "gameResult": "undeclared"
         };
     }
 
     changeState(col, count, gameState, playerIndex) {
+        console.log("col:" + col + " count:" + count + " gameState:" + JSON.stringify(gameState));
         if (col >= this.columns) {
             throw 'Invalid input exception' 
         }
 
-        var currentCount = gameState[col];
+        var currentCount = gameState.coordinates[col];
         if (currentCount < count) {
             throw 'Invalid Input: not enough bricks to remove'
         }
 
-        gameState[col] = gameState[col] - count;
+        gameState.coordinates[col] = currentCount - count;
         return {
-            "coordinates": gameState,
-            "nextTurn": togglePlayer(playerIndex),
-            "gameResult": this.hasWon(gameState)? "ended":"undeclared"
+            "coordinates": gameState.coordinates,
+            "nextTurn": this.togglePlayer(playerIndex),
+            "gameResult": this.hasWon(gameState.coordinates)? "ended":"undeclared"
         }
     }
 

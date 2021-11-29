@@ -1,3 +1,4 @@
+const { count } = require("console");
 const Nim = require("./Nim");
 
 const nim = new Nim(3,8);
@@ -9,12 +10,24 @@ class GameSessionHandler {
         this.gameCreationHandler = gameCreationHandler;
     }
 
-    async playTurn(playerName, gameSessionId, turnValue) {
+    async playTurn(body, queryStringParams) {
+
+        // add validations for existence of these values
+        var gameSessionId = queryStringParams.sessionId;
+        var playerName = queryStringParams.playerName;
+        var jsonBody = JSON.parse(body)
+        var turnValue = {
+            col: parseInt(jsonBody.col),
+            count: parseInt(jsonBody.count)
+        }
+
         // first get the gameSession
-        gameSessionDataItem = this.queryGameData(gameSessionId);
+        var gameSessionDataItem = await this.queryGameData(gameSessionId);
+        console.log("currentGameState:" + JSON.stringify(gameSessionDataItem));
+        console.log("player turn: col:" + turnValue.col.toString() + " count: " + turnValue.count.toString());
 
         // validate that is in active state
-        if (gameSessionDataItem.status != "active") {
+        if (gameSessionDataItem.status != "active" && gameSessionDataItem.status != "undeclared") {
             // game cannot be played
             return {
                 statusCode: 500,
@@ -23,19 +36,27 @@ class GameSessionHandler {
         }
 
         // validate that this player is part of the game
-        var playerFound = false;
+        var playerIndex = -1;
         for (let i = 0; i < gameSessionDataItem.players.length; i++) {
             if (gameSessionDataItem.players[i] == playerName) {
-                playerFound = true;
+                playerIndex = i;
                 break;
             }
         }
 
-        if (!playerFound) {
+        if (!playerIndex == -1) {
             return {
                 statusCode: 500,
                 body: "Player is not a part of the game. Sorry!"
             }
+        }
+
+        if (playerIndex != gameSessionDataItem.currentTurn) {
+            return {
+                statusCode: 500,
+                body: "Not this players turn yet. Wait for your turn!"
+            }
+
         }
 
         // find the resolver based on the gameId
@@ -46,9 +67,18 @@ class GameSessionHandler {
             }
         }
 
-        var nextState = nim.changeState(col, gameSessionDataItem.gameState)
+        var nextState = nim.changeState(turnValue.col, turnValue.count, gameSessionDataItem.gameState, gameSessionDataItem.currentTurn);
+        gameSessionDataItem.currentTurn = nextState.nextTurn;
+        gameSessionDataItem.gameState = nextState;
+        gameSessionDataItem.status = nextState.gameResult;
 
+        // save the new state to the DB
+        await this.saveToGameData(gameSessionDataItem);
 
+        return {
+            statusCode: 200,
+            body: JSON.stringify(gameSessionDataItem)
+        }
 
     }
 
@@ -109,6 +139,7 @@ class GameSessionHandler {
         }
 
         if (gameDataItem == null || 
+            gameDataItem.status == "undeclared" ||
             gameDataItem.status == "active" ||
             gameDataItem.players.length >= parseInt(gameDataItem.totalPlayers)) {
             console.log("Game already active. Cannot add players now");
@@ -122,6 +153,10 @@ class GameSessionHandler {
         if(gameDataItem.players.length == gameDataItem.totalPlayers) {
             // Game is ready to be played as we have the required set of players to play
             gameDataItem.status = "active";
+            var nextState = nim.getInitialState(parseInt(gameDataItem.totalPlayers));
+            gameDataItem.gameState = nextState;
+            gameDataItem.status = nextState.gameResult;
+            gameDataItem.currentTurn = nextState.nextTurn;
         }
         var result = await this.saveToGameData(gameDataItem);
         if (result == -1) {
