@@ -1,4 +1,5 @@
 const { count } = require("console");
+const { CustomException, INVALID_INPUT_EXCETION_TYPE } = require("./CustomException");
 const Nim = require("./Nim");
 
 const nim = new Nim(3,8);
@@ -92,12 +93,9 @@ class GameSessionHandler {
         var totalPlayersNeeded = await this.gameCreationHandler.getTotalPlayersNeeded(gameId);
         console.log("Total players:" + totalPlayersNeeded + " for gameId:" + gameId);
 
-        if (totalPlayersNeeded == -1) {
+        if (totalPlayersNeeded <= 0 || isNaN(totalPlayersNeeded)) {
             // error. Game doesn't exist
-            return {
-                statusCode: 500,
-                body: 'Game Does not exist'
-            }
+            throw new CustomException("Game:" + gameId + " does not exist", INVALID_INPUT_EXCETION_TYPE);
         }
 
         // Else create a new item in the gameData table
@@ -127,19 +125,43 @@ class GameSessionHandler {
         }
     }
 
+    playerExists(players, userName) {
+        var exists = false;
+        players.forEach(function(item) {
+            console.log(" item:" + item + " userName:" + userName);
+            if (item == userName) {
+                console.log(" Found match. returning true");
+                exists = true;
+            }
+        });
+
+        return exists;
+    }
+
     async addNewPlayer(queryStringParams) {
         var gameSessionId = queryStringParams.gameSessionId;
         var userName = queryStringParams.playerName;
 
+        if (!gameSessionId || !userName) {
+            throw new CustomException("Invalid parameters,\ngamesSessionId:" + gameSessionId + " userName:" + userName,
+                INVALID_INPUT_EXCETION_TYPE);
+        }
+
         // query the current state, to see if more players can still be added
         var gameDataItem = await this.queryGameData(gameSessionId);
 
-        if (gameDataItem != null) {
-            console.log("gameDataItem:" + JSON.stringify(gameDataItem) + " players:" + gameDataItem.players + " length:" + gameDataItem.players.length);
+        if (gameDataItem == null) {
+            throw new CustomException("game session does not exist:" + gameSessionId,
+             INVALID_INPUT_EXCETION_TYPE);
         }
 
-        if (gameDataItem == null || 
-            gameDataItem.status == "undeclared" ||
+        if (this.playerExists(gameDataItem.players, userName) == true) {
+            throw new CustomException("Player already exists:" + userName, INVALID_INPUT_EXCETION_TYPE);
+        }
+
+        console.log("gameDataItem:" + JSON.stringify(gameDataItem) + " players:" + gameDataItem.players + " length:" + gameDataItem.players.length);
+
+        if (gameDataItem.status == "undeclared" ||
             gameDataItem.status == "active" ||
             gameDataItem.players.length >= parseInt(gameDataItem.totalPlayers)) {
             console.log("Game already active. Cannot add players now");

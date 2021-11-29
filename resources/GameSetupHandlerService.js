@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const { read } = require('fs');
+const { INVALID_INPUT_EXCETION_TYPE } = require('./CustomException');
 const GameCreationHandler = require('./GameCreationHandler')
 const GameSessionHandler = require('./GameSessionHandler');
 
@@ -20,13 +21,20 @@ exports.main = async function(event, context) {
         console.log("main: handleEventResult:" + JSON.stringify(handleEventResult))
         return handleEventResult;
     } catch(error) {
+
+        if (error.getType() && error.getType() == INVALID_INPUT_EXCETION_TYPE) {
+            return {
+                statusCode: 400, // bad request
+                body: error.getMessage()
+            }
+        }
+
         return {
             statusCode: 500,
             body: error
         }
     }
 }
-
 
 async function handleGetRequest(path, event) {
     if (path == "/getAllGames") {

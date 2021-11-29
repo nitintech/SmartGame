@@ -1,3 +1,5 @@
+const { CustomException, INVALID_INPUT_EXCETION_TYPE } = require("./CustomException");
+
 class GameCreationHandler {
 
     constructor(gameIdentifiersTable, docClient) {
@@ -49,6 +51,11 @@ class GameCreationHandler {
         var gameName = queryStringParams.gameName;
         var totalPlayers = queryStringParams.playersNeeded;
         var gameUuid = Math.floor(Math.random() * 10000);
+
+        if (!gameName || !totalPlayers || isNaN(totalPlayers)) {
+            throw new CustomException("enrollNewGame has gameName or totalPlayers invalid,\ngameName:"
+             + gameName + " totalPlayers:" + totalPlayers, INVALID_INPUT_EXCETION_TYPE);
+        }
             
         var writeStatus = await this.saveToGameIdentifiers(gameUuid, gameName, totalPlayers);
         if (writeStatus != -1) {
