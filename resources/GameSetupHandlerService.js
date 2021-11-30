@@ -42,6 +42,9 @@ async function handleGetRequest(path, event) {
         var result = await gameCreationHandler.getAllGames();
         console.log("handleGetRequest result:" + result);
         return result;
+    } else if (path == "/GetGameState") {
+        console.log("handleGetRequest: getGameState");
+        return await gameSessionHandler.getGameState(event.queryStringParameters);
     }
     return {
         statusCode: 200,

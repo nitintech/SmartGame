@@ -11,12 +11,37 @@ class GameSessionHandler {
         this.gameCreationHandler = gameCreationHandler;
     }
 
+    async getGameState(queryStringParams) {
+
+        var gameSessionId = queryStringParams.sessionId;
+        if (!gameSessionId) {
+            throw new CustomException("Invalid parameters for getGameState, gameSessionId:" + gameSessionId);
+        }
+        console.log("getGameState, sessionId:" + gameSessionId);
+
+        var gameSessionDataItem = await this.queryGameData(gameSessionId);
+        console.log("currentGameState:" + JSON.stringify(gameSessionDataItem));
+
+        if (!gameSessionDataItem) {
+            console.error("Session Id not found:" + gameSessionId);
+            throw new CustomException("Invalid session id, not found:" + gameSessionId);
+        }
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify(gameSessionDataItem)
+        }
+    }
+
     async playTurn(body, queryStringParams) {
 
         // add validations for existence of these values
         var gameSessionId = queryStringParams.sessionId;
         var playerName = queryStringParams.playerName;
         var jsonBody = JSON.parse(body)
+
+        // todo: move this to the NIM so that this class can
+        // be opaque to the body
         var turnValue = {
             col: parseInt(jsonBody.col),
             count: parseInt(jsonBody.count)
