@@ -9,6 +9,12 @@ import lombok.Getter;
 @Builder
 @Getter
 public class GameState {
+
+    public static final String PENDING_STATE = "pending";
+    public static final String ACTIVE_STATE = "active";
+    public static final String UNDECLARED_STATE = "undeclared";
+    public static final String ENDED_STATE = "ended";
+
     private String gameSessionId;
     private String gameName;
     private int totalPlayers;

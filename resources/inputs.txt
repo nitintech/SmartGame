@@ -7,5 +7,6 @@ curl -X POST "https://h3zmtepg15.execute-api.us-west-2.amazonaws.com/prod/AddNew
 curl -X GET "https://h3zmtepg15.execute-api.us-west-2.amazonaws.com/prod/GetGameState?sessionId=476748"
 curl -X POST "https://h3zmtepg15.execute-api.us-west-2.amazonaws.com/prod/playTurn?playerName=nitin&sessionId=949274" -d '{"col": 2, "count":1}'
 
+java -jar smartgameclient-1.0-SNAPSHOT.jar
 
 -D -> USED TO Add body to the request

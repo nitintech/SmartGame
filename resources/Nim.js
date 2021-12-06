@@ -35,7 +35,7 @@ class Nim {
             "coordinates": gameState.coordinates,
             "nextTurn": this.togglePlayer(playerIndex),
             "gameResult": this.hasWon(gameState.coordinates)? "ended":"undeclared",
-            "winner": playerIndex
+            "winner": this.hasWon(gameState.coordinates)? playerIndex : -1
         }
     }
 
