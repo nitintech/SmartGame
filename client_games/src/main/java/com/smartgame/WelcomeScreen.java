@@ -68,7 +68,6 @@ public class WelcomeScreen {
             System.out.println("all players joined:" + gameState);
             clearScreen();
             displayHeader();
-//            displayGamePlay(gameState);
             goToGamePlayMode(gameState);
         }
     }
@@ -83,6 +82,10 @@ public class WelcomeScreen {
                 IGamePlay gamePlay = getGamePlay(gameState.getGameName());
                 String turn = gamePlay.getNextTurn();
                 gameState = connector.playTurn(mPlayerName, mSessionId, turn);
+                if (gameState == null) {
+                    Logger.log("Invalid Input. Please retry", Logger.COLOR.RED);
+                    gameState = connector.getGameState(mSessionId);
+                }
             } else {
                 try {
                     System.out.println("waiting for the other player's turn");
@@ -143,12 +146,13 @@ public class WelcomeScreen {
             System.out.println("Enter game name");
             String gameName = userInput.getString();
             GameState gameState = connector.startNewSession(gameName);
+            clearScreen();
             if (gameState == null) {
                 Logger.log("Error creating game session", Logger.COLOR.RED);
+            } else {
+                // print session and go back to main menu
+                Logger.log(gameState.display(), Logger.COLOR.YELLOW);
             }
-            clearScreen();
-            Logger.log(gameState.display(), Logger.COLOR.YELLOW);
-            // print session and go back to main menu
             displayDefaultScreen();
         } else if (n == 3) {
             System.out.println("Enter session id");
@@ -156,11 +160,17 @@ public class WelcomeScreen {
             System.out.println("Enter player name");
             final String userName = userInput.getString();
             GameState gameState = connector.addNewPlayer(sessionId, userName);
-            System.out.println(gameState);
-            mSessionId = sessionId;
-            mPlayerName = userName;
-            mGameName = gameState.getGameName();
-            displayWaitingForGameStart();
+            if (gameState == null) {
+                clearScreen();
+                Logger.log("Invalid session. Please retry.", Logger.COLOR.RED);
+                displayDefaultScreen();
+            } else {
+                System.out.println(gameState);
+                mSessionId = sessionId;
+                mPlayerName = userName;
+                mGameName = gameState.getGameName();
+                displayWaitingForGameStart();
+            }
         }
 
     }
