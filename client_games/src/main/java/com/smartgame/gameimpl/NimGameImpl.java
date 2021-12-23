@@ -49,6 +49,7 @@ public class NimGameImpl implements IGamePlay {
 
 
     private void printCoordinates(List<Long> list) {
+        Logger.log("RULE: Player who picks the last stone LOOSES", Logger.COLOR.GREEN);
         long max = getMaxPeak(list);
         Logger.log("0\t1\t2\t", Logger.COLOR.BLUE);
         while (max > 0) {
