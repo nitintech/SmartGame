@@ -29,4 +29,8 @@ public class GameState {
                 + ", playerList=" + playerList + ", currentTurn=" + currentTurn + ", status='" + status + '\'' + ", gameStatus="
                 + specificGameState + '}';
     }
+
+    public String display() {
+        return "GAME NAME: " + gameName + " SESSIONID: " + gameSessionId;
+    }
 }

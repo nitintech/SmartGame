@@ -6,8 +6,10 @@ import java.util.List;
 import com.smartgame.gamedefinitions.AbstractGameState;
 import com.smartgame.gamedefinitions.NimState;
 import com.smartgame.models.GameState;
+import com.smartgame.utils.Logger;
 import com.smartgame.utils.UserInput;
 import org.json.simple.JSONObject;
+import sun.rmi.runtime.Log;
 
 public class NimGameImpl implements IGamePlay {
 
@@ -35,7 +37,7 @@ public class NimGameImpl implements IGamePlay {
         Long winnerIndex = state.getWinnerIndex();
         // add size check here
         final String winner = players.get(Math.toIntExact(winnerIndex));
-        System.out.println("PLAYER:" + winner + " WON. CONGRATS TO THE WINNER");
+        Logger.log("PLAYER:" + winner + " WON. CONGRATS TO THE WINNER", Logger.COLOR.BLUE);
     }
 
     private String constructRequestBody(int col, int count) {
@@ -48,6 +50,7 @@ public class NimGameImpl implements IGamePlay {
 
     private void printCoordinates(List<Long> list) {
         long max = getMaxPeak(list);
+        Logger.log("0\t1\t2\t", Logger.COLOR.BLUE);
         while (max > 0) {
             StringBuilder builder = new StringBuilder();
             for (long coordinate:list) {
@@ -57,7 +60,7 @@ public class NimGameImpl implements IGamePlay {
                     builder.append(" \t");
                 }
             }
-            System.out.println(builder.toString());
+            Logger.log(builder.toString(), Logger.COLOR.GREEN);
             max--;
         }
     }

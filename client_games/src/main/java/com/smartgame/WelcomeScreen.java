@@ -7,6 +7,8 @@ import com.smartgame.gameimpl.IGamePlay;
 import com.smartgame.gameimpl.NimGameImpl;
 import com.smartgame.models.GameDefinition;
 import com.smartgame.models.GameState;
+import com.smartgame.utils.FileContentReader;
+import com.smartgame.utils.Logger;
 import com.smartgame.utils.RestApiConnector;
 import com.smartgame.utils.UserInput;
 
@@ -16,17 +18,17 @@ public class WelcomeScreen {
     private static final String CLEAR_SCREEN = "\033[H\033[2J";
     private static String mSessionId;
     private static String mPlayerName;
+    private static String mGameName;
+    private static final String WELCOME_SCREEN_TEXT_FILE_PATH = "welcomeScreen.txt";
+    private static final int REFRESH_TIME_MILLIS = 1000;
 
     public static void main(String[] args) {
-        System.out.println("Welcome to Smartgames");
+        clearScreen();
         displayDefaultScreen();
     }
 
     private static void displayDefaultScreen() {
-        System.out.println("Chose one of the following options");
-        System.out.println("Press 1 for GetAllGames");
-        System.out.println("Press 2 to start a new game session");
-        System.out.println("Press 3 to join a session");
+        Logger.log(FileContentReader.readText(WELCOME_SCREEN_TEXT_FILE_PATH), Logger.COLOR.BLUE);
         int n = userInput.getInteger();
         if (n < 1 || n > 3) {
             System.out.println("Invalid input");
@@ -36,11 +38,19 @@ public class WelcomeScreen {
         attemptUserSelection(n);
     }
 
+    private static void displayHeader() {
+        Logger.log("GAME: " + mGameName +
+                ", SESSION ID: " + mSessionId +
+                ", PLAYER NAME:" + mPlayerName,
+                Logger.COLOR.GREEN);
+    }
+
     private static void displayWaitingForGameStart() {
         GameState gameState = connector.getGameState(mSessionId);
 
         while (gameState.getStatus().equals(GameState.PENDING_STATE)) {
             clearScreen();
+            displayHeader();
             System.out.println("Waiting for other players to join");
             try {
                 // sleep for 5 seconds and check again
@@ -57,7 +67,8 @@ public class WelcomeScreen {
             // display the specific game here
             System.out.println("all players joined:" + gameState);
             clearScreen();
-            displayGamePlay(gameState);
+            displayHeader();
+//            displayGamePlay(gameState);
             goToGamePlayMode(gameState);
         }
     }
@@ -65,6 +76,7 @@ public class WelcomeScreen {
     private static void goToGamePlayMode(GameState gameState) {
         while (!gameState.getStatus().equalsIgnoreCase(GameState.ENDED_STATE)) {
             clearScreen();
+            displayHeader();
             displayGamePlay(gameState);
             if (isMyTurn(gameState)) {
                 // get my turn
@@ -74,7 +86,7 @@ public class WelcomeScreen {
             } else {
                 try {
                     System.out.println("waiting for the other player's turn");
-                    Thread.sleep(5000);
+                    Thread.sleep(REFRESH_TIME_MILLIS);
                 } catch (Exception e) {
                     System.out.println("Error waiting for other player to play turn");
                 }
@@ -87,6 +99,9 @@ public class WelcomeScreen {
 
     private static void displayResult(GameState gameState) {
         IGamePlay gamePlay = getGamePlay(gameState.getGameName());
+        clearScreen();
+        displayHeader();
+
         gamePlay.displayResult(gameState.getSpecificGameState(), gameState.getPlayerList());
     }
 
@@ -118,7 +133,9 @@ public class WelcomeScreen {
     private static void attemptUserSelection(int n) {
         if (n == 1) {
             List<GameDefinition> gameList = connector.getAllGames();
-            System.out.println(gameList);
+            clearScreen();
+            Logger.log("LIST OF AVAILABLE GAMES", Logger.COLOR.YELLOW);
+            Logger.log(gameList.toString(), Logger.COLOR.YELLOW);
             System.out.println();
             displayDefaultScreen();
         } else if (n == 2) {
@@ -126,7 +143,11 @@ public class WelcomeScreen {
             System.out.println("Enter game name");
             String gameName = userInput.getString();
             GameState gameState = connector.startNewSession(gameName);
-            System.out.println(gameState);
+            if (gameState == null) {
+                Logger.log("Error creating game session", Logger.COLOR.RED);
+            }
+            clearScreen();
+            Logger.log(gameState.display(), Logger.COLOR.YELLOW);
             // print session and go back to main menu
             displayDefaultScreen();
         } else if (n == 3) {
@@ -138,6 +159,7 @@ public class WelcomeScreen {
             System.out.println(gameState);
             mSessionId = sessionId;
             mPlayerName = userName;
+            mGameName = gameState.getGameName();
             displayWaitingForGameStart();
         }
 

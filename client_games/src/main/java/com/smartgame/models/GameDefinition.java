@@ -11,6 +11,7 @@ public class GameDefinition {
 
     @Override
     public String toString() {
-        return "GameDefinition{" + "gameName='" + gameName + '\'' + ", totalPlayers=" + totalPlayers + '}';
+        return "\n" + gameName + "(totalPlayers:" + totalPlayers + ")";
     }
+
 }

@@ -32,7 +32,7 @@ public class RestApiConnector {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             int status = con.getResponseCode();
-            System.out.println(status);
+//            System.out.println(status);
             final String response = getResponse(con);
             JSONArray jsonArray = (JSONArray) JSONValue.parse(response);
 

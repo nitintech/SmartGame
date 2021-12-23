@@ -1,0 +1,10 @@
+Welcome to Smart Games. Platform to develop and play multiplayer games ONLINE.
+
+Chose one of the following options:
+
+Press 1 for GetAllGames.
+
+Press 2 to start a new game session.
+
+Press 3 to join an existing session.
+
