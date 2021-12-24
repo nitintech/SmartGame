@@ -1,8 +1,10 @@
 const { count } = require("console");
 const { CustomException, INVALID_INPUT_EXCETION_TYPE } = require("./CustomException");
 const Nim = require("./Nim");
+const Tictactoe = require("./Tictactoe");
 
-const nim = new Nim(3,8);
+const nim = new Nim(3,6);
+const tictactoe = new Tictactoe();
 
 class GameSessionHandler {
     constructor(gameDataTable, docClient, gameCreationHandler) {
@@ -77,15 +79,18 @@ class GameSessionHandler {
 
         }
 
-        // find the resolver based on the gameId
-        if (gameSessionDataItem.gameId != "Nim") {
+        var nextState;
+        if (gameSessionDataItem.gameId == "Nim") {
+            nextState = nim.changeState(jsonBody, gameSessionDataItem.gameState, gameSessionDataItem.currentTurn);
+        } else if (gameSessionDataItem.gameId == "TicTacToe") {
+            nextState = tictactoe.changeState(jsonBody, gameSessionDataItem.gameState, gameSessionDataItem.currentTurn);
+        } else {
             return {
                 statusCode: 501,
                 body: "Game not supported yet. Sorry!"
             }
         }
-
-        var nextState = nim.changeState(jsonBody, gameSessionDataItem.gameState, gameSessionDataItem.currentTurn);
+        
         gameSessionDataItem.currentTurn = nextState.nextTurn;
         gameSessionDataItem.gameState = nextState;
         gameSessionDataItem.status = nextState.gameResult;
@@ -192,7 +197,17 @@ class GameSessionHandler {
         if(gameDataItem.players.length == gameDataItem.totalPlayers) {
             // Game is ready to be played as we have the required set of players to play
             gameDataItem.status = "active";
-            var nextState = nim.getInitialState(parseInt(gameDataItem.totalPlayers));
+            var nextState;
+            if (gameDataItem.gameId == "Nim") {
+                nextState = nim.getInitialState(parseInt(gameDataItem.totalPlayers));
+            } else if (gameDataItem.gameId == "TicTacToe") {
+                nextState = tictactoe.getInitialState(parseInt(gameDataItem.totalPlayers));
+            } else {
+                return {
+                    statusCode: 500,
+                    body: "Invalid Game"
+                }
+            }
             gameDataItem.gameState = nextState;
             gameDataItem.status = nextState.gameResult;
             gameDataItem.currentTurn = nextState.nextTurn;

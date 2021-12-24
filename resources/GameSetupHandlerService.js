@@ -22,6 +22,7 @@ exports.main = async function(event, context) {
         return handleEventResult;
     } catch(error) {
 
+        console.log(error);
         if (error.getType() && error.getType() == INVALID_INPUT_EXCETION_TYPE) {
             return {
                 statusCode: 400, // bad request
