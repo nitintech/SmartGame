@@ -5,11 +5,9 @@ import java.util.List;
 
 import com.smartgame.gamedefinitions.AbstractGameState;
 import com.smartgame.gamedefinitions.NimState;
-import com.smartgame.models.GameState;
 import com.smartgame.utils.Logger;
 import com.smartgame.utils.UserInput;
 import org.json.simple.JSONObject;
-import sun.rmi.runtime.Log;
 
 public class NimGameImpl implements IGamePlay {
 

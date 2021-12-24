@@ -19,14 +19,18 @@ class Nim {
         };
     }
 
-    changeState(col, count, gameState, playerIndex) {
+    changeState(jsonBody, gameState, playerIndex) {
+
+        var col = parseInt(jsonBody.col);
+        var count = parseInt(jsonBody.count);
+        
         console.log("col:" + col + " count:" + count + " gameState:" + JSON.stringify(gameState));
         if (col >= this.columns) {
             throw 'Invalid input exception' 
         }
 
         var currentCount = gameState.coordinates[col];
-        if (currentCount < count) {
+        if (currentCount < count || count == 0) {
             throw 'Invalid Input: not enough bricks to remove'
         }
 
@@ -35,7 +39,7 @@ class Nim {
             "coordinates": gameState.coordinates,
             "nextTurn": this.togglePlayer(playerIndex),
             "gameResult": this.hasWon(gameState.coordinates)? "ended":"undeclared",
-            "winner": this.hasWon(gameState.coordinates)? playerIndex : -1
+            "winner": this.hasWon(gameState.coordinates)? (playerIndex + 1)%2 : -1
         }
     }
 

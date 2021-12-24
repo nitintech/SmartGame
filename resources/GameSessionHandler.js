@@ -40,17 +40,9 @@ class GameSessionHandler {
         var playerName = queryStringParams.playerName;
         var jsonBody = JSON.parse(body)
 
-        // todo: move this to the NIM so that this class can
-        // be opaque to the body
-        var turnValue = {
-            col: parseInt(jsonBody.col),
-            count: parseInt(jsonBody.count)
-        }
-
         // first get the gameSession
         var gameSessionDataItem = await this.queryGameData(gameSessionId);
         console.log("currentGameState:" + JSON.stringify(gameSessionDataItem));
-        console.log("player turn: col:" + turnValue.col.toString() + " count: " + turnValue.count.toString());
 
         // validate that is in active state
         if (gameSessionDataItem.status != "active" && gameSessionDataItem.status != "undeclared") {
@@ -93,7 +85,7 @@ class GameSessionHandler {
             }
         }
 
-        var nextState = nim.changeState(turnValue.col, turnValue.count, gameSessionDataItem.gameState, gameSessionDataItem.currentTurn);
+        var nextState = nim.changeState(jsonBody, gameSessionDataItem.gameState, gameSessionDataItem.currentTurn);
         gameSessionDataItem.currentTurn = nextState.nextTurn;
         gameSessionDataItem.gameState = nextState;
         gameSessionDataItem.status = nextState.gameResult;
