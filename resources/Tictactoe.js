@@ -6,7 +6,7 @@ class Tictactoe {
 
         for (let i = 0; i < SIZE_OF_GAME*SIZE_OF_GAME; i++) {
             // height can be from 1 to maxeight
-            flatArray.push("");
+            flatArray.push(" ");
         }
 
         return {

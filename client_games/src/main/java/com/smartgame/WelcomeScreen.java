@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.smartgame.gameimpl.IGamePlay;
 import com.smartgame.gameimpl.NimGameImpl;
+import com.smartgame.gameimpl.TictactoeGameImpl;
 import com.smartgame.models.GameDefinition;
 import com.smartgame.models.GameState;
 import com.smartgame.utils.FileContentReader;
@@ -19,6 +20,7 @@ public class WelcomeScreen {
     private static String mSessionId;
     private static String mPlayerName;
     private static String mGameName;
+    private static int mPlayerIndex;
     private static final String WELCOME_SCREEN_TEXT_FILE_PATH = "welcomeScreen.txt";
     private static final int REFRESH_TIME_MILLIS = 1000;
 
@@ -120,12 +122,14 @@ public class WelcomeScreen {
 
     private static void displayGamePlay(GameState gameState) {
         IGamePlay gamePlay = getGamePlay(gameState.getGameName());
-        gamePlay.displayGameState(gameState.getSpecificGameState());
+        gamePlay.displayGameState(gameState.getSpecificGameState(), mPlayerIndex);
     }
 
     private static IGamePlay getGamePlay(final String gameName) {
         if (gameName.equalsIgnoreCase("Nim")) {
             return new NimGameImpl();
+        } else if (gameName.equalsIgnoreCase("TicTacToe")) {
+            return new TictactoeGameImpl();
         } else {
             System.out.println("Game not supported");
             return null;
@@ -169,10 +173,21 @@ public class WelcomeScreen {
                 mSessionId = sessionId;
                 mPlayerName = userName;
                 mGameName = gameState.getGameName();
+                mPlayerIndex = getPlayerIndex(gameState.getPlayerList(), mPlayerName);
                 displayWaitingForGameStart();
             }
         }
 
+    }
+
+    private static int getPlayerIndex(final List<String> playerList, final String playerName) {
+        for (int index = 0; index < playerList.size(); index++) {
+            if (playerList.get(index).equals(playerName)) {
+                return index;
+            }
+        }
+        Logger.log("Invalid player index!!", Logger.COLOR.RED);
+        return -1;
     }
 
     private static void clearScreen() {

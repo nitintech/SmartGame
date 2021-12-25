@@ -14,7 +14,7 @@ public class NimGameImpl implements IGamePlay {
     private static final UserInput userInput = new UserInput();
 
     @Override
-    public void displayGameState(AbstractGameState gameState) {
+    public void displayGameState(AbstractGameState gameState, int playerIndex) {
         NimState state = (NimState) gameState;
         List<Long> coordinates = state.getPeaks();
         printCoordinates(coordinates);

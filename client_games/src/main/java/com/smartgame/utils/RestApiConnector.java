@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.smartgame.gamedefinitions.AbstractGameState;
 import com.smartgame.gamedefinitions.NimState;
+import com.smartgame.gamedefinitions.TictactoeState;
 import com.smartgame.models.GameDefinition;
 import com.smartgame.models.GameState;
 import org.json.simple.JSONArray;
@@ -170,6 +171,10 @@ public class RestApiConnector {
         AbstractGameState state = new AbstractGameState("undeclared");
         if (gameName.equalsIgnoreCase("Nim")) {
             state = new NimState(gameStateObject);
+        } else if (gameName.equalsIgnoreCase("TicTacToe")) {
+            state = new TictactoeState(gameStateObject);
+        } else {
+            return null;
         }
 
         return GameState.builder()
