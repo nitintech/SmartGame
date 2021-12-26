@@ -3,6 +3,7 @@ package com.smartgame.gameimpl;
 import com.smartgame.gamedefinitions.AbstractGameState;
 import com.smartgame.gamedefinitions.NimState;
 import com.smartgame.gamedefinitions.TictactoeState;
+import com.smartgame.models.GameState;
 import com.smartgame.utils.Logger;
 import com.smartgame.utils.UserInput;
 import org.json.simple.JSONObject;
@@ -37,7 +38,11 @@ public class TictactoeGameImpl implements IGamePlay {
         Long winnerIndex = state.getWinnerIndex();
         // add size check here
         final String winner = players.get(Math.toIntExact(winnerIndex));
-        Logger.log("PLAYER:" + winner + " WON. CONGRATS TO THE WINNER", Logger.COLOR.BLUE);
+        if (state.getGameResult().equalsIgnoreCase(GameState.DRAW_STATE)) {
+            Logger.log("MATCH DRAWN", Logger.COLOR.BLUE);
+        } else {
+            Logger.log("PLAYER:" + winner + " WON. CONGRATS TO THE WINNER", Logger.COLOR.BLUE);
+        }
     }
 
     private String constructRequestBody(int row, int col) {
@@ -52,12 +57,14 @@ public class TictactoeGameImpl implements IGamePlay {
         Logger.log("You are assigned symbol:" + assignment, Logger.COLOR.GREEN);
 
         Logger.log(" \t0\t1\t2\t", Logger.COLOR.BLUE);
-        StringBuilder builder = new StringBuilder();
+        Logger.log("\t_\t_\t_\t", Logger.COLOR.BLUE);
+        StringBuilder builder;
 
         int size = (int) Math.sqrt(markings.size());
         for (int row = 0; row < size; row++) {
             builder = new StringBuilder();
             builder.append(row);
+            builder.append("|");
             builder.append("\t");
 
             for (int col = 0; col < size; col++) {

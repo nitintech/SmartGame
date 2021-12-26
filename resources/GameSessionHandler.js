@@ -90,6 +90,13 @@ class GameSessionHandler {
                 body: "Game not supported yet. Sorry!"
             }
         }
+
+        if (nextState == null) {
+            return {
+                statusCode: 500,
+                body: "Invalid turn!"
+            }
+        }
         
         gameSessionDataItem.currentTurn = nextState.nextTurn;
         gameSessionDataItem.gameState = nextState;

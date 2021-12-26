@@ -75,7 +75,7 @@ public class WelcomeScreen {
     }
 
     private static void goToGamePlayMode(GameState gameState) {
-        while (!gameState.getStatus().equalsIgnoreCase(GameState.ENDED_STATE)) {
+        while (gameState.getStatus().equalsIgnoreCase(GameState.UNDECLARED_STATE)) {
             clearScreen();
             displayHeader();
             displayGamePlay(gameState);
@@ -106,6 +106,7 @@ public class WelcomeScreen {
         IGamePlay gamePlay = getGamePlay(gameState.getGameName());
         clearScreen();
         displayHeader();
+        displayGamePlay(gameState);
 
         gamePlay.displayResult(gameState.getSpecificGameState(), gameState.getPlayerList());
     }

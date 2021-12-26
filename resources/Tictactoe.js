@@ -31,21 +31,49 @@ class Tictactoe {
             throw 'Invalid input exception' 
         }
 
-        gameState.markings[flatIndex] = gameState.symbolAssignments[playerIndex];
+        if (gameState.markings[flatIndex] != " ") {
+            // already taken. Invalid turn
+            return null;
+        }
 
+        gameState.markings[flatIndex] = gameState.symbolAssignments[playerIndex];
 
         return {
             "markings": gameState.markings,
             "nextTurn": this.togglePlayer(playerIndex),
-            "gameResult": this.hasWon(gameState.markings, gameState.symbolAssignments[playerIndex])? "ended":"undeclared",
+            "gameResult": this.getGameResult(gameState.markings, gameState.symbolAssignments[playerIndex]),
             "symbolAssignments": gameState.symbolAssignments,
             "winner": playerIndex
+        }
+    }
+
+    getGameResult(markings, symbol) {
+        if (this.hasDrawn(markings)) {
+            return "draw";
+        } else if (this.hasWon(markings, symbol)) {
+            return "ended";
+        } else {
+            return "undeclared";
         }
     }
     
     togglePlayer(playerIndex) {
         playerIndex = (playerIndex + 1) % 2;
         return playerIndex;
+    }
+
+    hasEnded(markings, symbol) {
+        return (this.hasDrawn(markings) || this.hasWon(markings, symbol))
+    }
+
+    hasDrawn(markings) {
+        for (let i = 0; i < SIZE_OF_GAME*SIZE_OF_GAME; i++) {
+            if (markings[i] == " ") {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     hasWon(markings, symbol) {
