@@ -33,6 +33,7 @@ public class WelcomeScreen {
         Logger.log(FileContentReader.readText(WELCOME_SCREEN_TEXT_FILE_PATH), Logger.COLOR.BLUE);
         int n = userInput.getInteger();
         if (n < 1 || n > 3) {
+            clearScreen();
             System.out.println("Invalid input");
             displayDefaultScreen();
         }
